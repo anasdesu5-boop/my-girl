@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>For Sara ❤️</title>
+  <meta name="description" content="A cinematic, romantic digital experience crafted especially for Sara."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ===== RESET ===== */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Inter',sans-serif;color:#fff;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+
+    /* ===== SCENES ===== */
+    .scene{position:fixed;inset:0;width:100%;height:100%;transition:opacity 1.4s ease;z-index:1}
+    .scene.hidden{display:none!important}
+    .scene.fade-out{opacity:0;pointer-events:none}
+
+    /* ===== CANVAS ===== */
+    .bg-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+    /* ===== SCENE 1 ===== */
+    #s1{z-index:10;background:#000}
+    #s1-content{position:relative;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:clamp(1rem,3vh,2rem);padding:2rem;text-align:center}
+    .s1-badge{font-family:'Orbitron',monospace;font-size:clamp(.55rem,1.5vw,.78rem);letter-spacing:.35em;text-transform:uppercase;color:rgba(255,255,255,.35);animation:fadeSlideUp 1.2s ease .3s both}
+    .s1-question{font-family:'Cinzel',serif;font-size:clamp(1.7rem,5vw,3.6rem);font-weight:900;letter-spacing:.06em;line-height:1.2;background:linear-gradient(135deg,#ffb3d1 0%,#ff6b9d 40%,#e91e8c 70%,#ff6b9d 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 4s linear infinite, fadeSlideUp 1.2s ease .6s both, nameGlowPulse 2.5s ease-in-out infinite alternate}
+    .no-msg{font-family:'Inter',sans-serif;font-size:clamp(.85rem,2vw,1.05rem);color:#ff6b9d;font-style:italic;min-height:1.4em;transition:opacity .3s ease}
+    .btn-row{display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;animation:fadeSlideUp 1.2s ease 1s both}
+    .btn{border:none;outline:none;cursor:pointer;font-family:'Orbitron',monospace;font-weight:700;border-radius:999px;letter-spacing:.12em;transition:transform .45s cubic-bezier(.34,1.56,.64,1), box-shadow .4s ease, font-size .4s ease, padding .4s ease, opacity .4s ease;position:relative;overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:manipulation;white-space:nowrap}
+    #btn-yes{background:linear-gradient(135deg,#ff85b3,#e91e8c,#ad0060);color:#fff;font-size:1.1rem;padding:.9rem 2.2rem;box-shadow:0 0 24px rgba(233,30,140,.5),0 4px 20px rgba(0,0,0,.4)}
+    #btn-yes::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.25),transparent 70%);pointer-events:none}
+    #btn-yes:hover{transform:scale(1.07);box-shadow:0 0 50px rgba(233,30,140,.8),0 8px 30px rgba(0,0,0,.5)}
+    #btn-no{background:transparent;color:rgba(255,255,255,.5);border:1.5px solid rgba(255,255,255,.2);font-size:.85rem;padding:.65rem 1.4rem}
+    #btn-no:hover{color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.45)}
+
+    @keyframes fadeSlideUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes shimmer{to{background-position:200% center}}
+    @keyframes nameGlowPulse{from{filter:drop-shadow(0 0 10px rgba(255,20,97,.4))}to{filter:drop-shadow(0 0 30px rgba(255,20,97,.9))}}
+
+    /* ===== SCENE 2 ===== */
+    #s2{z-index:5;background:#000;opacity:0;pointer-events:none}
+    #s2.visible{opacity:1;pointer-events:all}
+    #matrix-canvas{position:absolute;inset:0;width:100%;height:100%}
+    #eye-canvas{position:absolute;inset:0;width:100%;height:100%}
+
+    /* terminal */
+    #terminal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:20;font-family:'Orbitron',monospace;font-size:clamp(.6rem,1.4vw,.88rem);color:#00ffcc;text-shadow:0 0 8px #00ffcc;background:rgba(0,10,8,.82);border:1px solid rgba(0,255,204,.25);border-radius:10px;padding:clamp(1rem,3vw,2rem) clamp(1.2rem,3.5vw,2.5rem);min-width:min(380px,88vw);backdrop-filter:blur(10px);transition:opacity 1s ease}
+    .t-line{display:block;min-height:1.5em;opacity:0;transition:opacity .4s ease}
+    .t-line.show{opacity:1}
+    .cursor{display:inline-block;width:.6em;height:1em;background:#00ffcc;vertical-align:text-bottom;animation:blink .7s step-end infinite}
+    @keyframes blink{50%{opacity:0}}
+    #scan-txt{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:.6rem;letter-spacing:.35em;color:rgba(0,255,204,.4);text-transform:uppercase;animation:pulse 2s ease-in-out infinite;z-index:10}
+    @keyframes pulse{0%,100%{opacity:.25}50%{opacity:.9}}
+
+    /* ===== SCENE 3 ===== */
+    #s3{z-index:3;background:#000;opacity:0;pointer-events:none}
+    #s3.visible{opacity:1;pointer-events:all}
+    #heart-canvas{position:absolute;inset:0;width:100%;height:100%}
+    #sara-ui{position:relative;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:clamp(.8rem,2vh,1.8rem);padding:2rem;text-align:center;pointer-events:none}
+    .name-wrap{position:relative;display:inline-block}
+    #sara-name{font-family:'Cinzel',serif;font-size:clamp(4rem,16vw,10rem);font-weight:900;letter-spacing:.18em;background:linear-gradient(135deg,#ffd6e7 0%,#ff85b3 30%,#e91e8c 60%,#ff85b3 80%,#ffd6e7 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 3s linear infinite, saraGlow 2s ease-in-out infinite alternate;opacity:0;transform:scale(.4) translateY(30px);transition:opacity 1.8s ease, transform 1.8s cubic-bezier(.34,1.15,.64,1)}
+    #sara-name.show{opacity:1;transform:scale(1) translateY(0)}
+    @keyframes saraGlow{from{filter:drop-shadow(0 0 20px rgba(233,30,140,.5))}to{filter:drop-shadow(0 0 60px rgba(233,30,140,.9)) drop-shadow(0 0 100px rgba(255,107,157,.4))}}
+    .reflection{font-family:'Cinzel',serif;font-size:clamp(4rem,16vw,10rem);font-weight:900;letter-spacing:.18em;position:absolute;top:100%;left:0;right:0;text-align:center;background:linear-gradient(to bottom,rgba(255,107,157,.35),transparent 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;transform:scaleY(-1);filter:blur(5px);opacity:.35;pointer-events:none}
+    .sara-q{font-family:'Cinzel',serif;font-size:clamp(.85rem,2.2vw,1.25rem);color:#ffb3d1;font-weight:400;line-height:1.8;max-width:560px;text-shadow:0 0 20px rgba(255,107,157,.5);opacity:0;transition:opacity 1.5s ease}
+    .sara-sub{font-family:'Cinzel',serif;font-size:clamp(.7rem,1.7vw,.95rem);color:rgba(255,179,209,.65);font-weight:300;letter-spacing:.06em;opacity:0;transition:opacity 1.5s ease}
+    .sara-q.show,.sara-sub.show{opacity:1}
+
+    /* ===== GLOBAL OVERLAYS ===== */
+    #ov-dark{position:fixed;inset:0;z-index:50;background:#000;opacity:0;pointer-events:none;transition:opacity 1.5s ease}
+    #ov-dark.on{opacity:1}
+  </style>
+</head>
+<body>
+
+<div id="ov-dark"></div>
+
+<!-- ======================================================
+     SCENE 1 — Are you ready?
+====================================================== -->
+<div class="scene" id="s1">
+  <canvas class="bg-canvas" id="star-canvas"></canvas>
+  <div id="s1-content">
+    <p class="s1-badge">✦ A message crafted just for you ✦</p>
+    <h1 class="s1-question">Are you ready, Sara? ❤️</h1>
+    <p class="no-msg" id="no-msg">&nbsp;</p>
+    <div class="btn-row">
+      <button id="btn-yes" class="btn" aria-label="Yes">YES 💗</button>
+      <button id="btn-no"  class="btn" aria-label="No">NO 💔</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================
+     SCENE 2 — Digital world + Eye
+====================================================== -->
+<div class="scene" id="s2">
+  <canvas id="matrix-canvas"></canvas>
+  <canvas id="eye-canvas"></canvas>
+  <div id="terminal">
+    <span class="t-line" id="tl0">&gt; Initializing heart.exe...<span id="t-cursor" class="cursor" style="display:none"></span></span>
+    <span class="t-line" id="tl1">&gt; Loading memories...</span>
+    <span class="t-line" id="tl2">&gt; Searching for someone special...</span>
+    <span class="t-line" id="tl3">&gt; Target found: SARA ❤️</span>
+    <span class="t-line" id="tl4">&gt; Opening the door to your world...<span class="cursor"></span></span>
+  </div>
+  <div id="scan-txt">ENTERING DIGITAL SPACE</div>
+</div>
+
+<!-- ======================================================
+     SCENE 3 — SARA Final Reveal
+====================================================== -->
+<div class="scene" id="s3">
+  <canvas id="heart-canvas"></canvas>
+  <div id="sara-ui">
+    <div class="name-wrap">
+      <h2 id="sara-name">SARA</h2>
+      <span class="reflection" aria-hidden="true">SARA</span>
+    </div>
+    <p class="sara-q" id="sara-q">"Out of all the eyes in the world,<br>I'd choose yours every time. ❤️"</p>
+    <p class="sara-sub" id="sara-sub">You make my world more beautiful, Sara. 💖</p>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ============================================================
+   HELPERS
+============================================================ */
+const $  = id => document.getElementById(id);
+const PI = Math.PI, TAU = PI*2;
+const rand  = (a,b) => Math.random()*(b-a)+a;
+const lerp  = (a,b,t) => a+(b-a)*t;
+const clamp = (v,lo,hi) => Math.max(lo,Math.min(hi,v));
+const easeInOut = t => t<.5 ? 2*t*t : -1+(4-2*t)*t;
+const easeOutCubic = t => 1-Math.pow(1-t,3);
+
+/* ============================================================
+   SCENE 1 — STAR / PARTICLE BACKGROUND
+============================================================ */
+(function(){
+  const cv = $('star-canvas');
+  const cx = cv.getContext('2d');
+  let W,H;
+  const resize = () => { W=cv.width=innerWidth; H=cv.height=innerHeight; };
+  resize(); window.addEventListener('resize',resize);
+
+  const PCOUNT = 250;
+  const particles = Array.from({length:PCOUNT},()=>({
+    x:rand(0,1), y:rand(0,1),
+    r:rand(.3,2.2),
+    vx:rand(-.12,.12), vy:rand(-.12,.12),
+    hue:rand(320,380),
+    alpha:rand(.1,.7),
+    phase:rand(0,TAU),
+    speed:rand(.001,.004)
+  }));
+
+  // Nebula blobs
+  const blobs = Array.from({length:5},()=>({
+    x:rand(.1,.9), y:rand(.1,.9),
+    r:rand(.15,.35),
+    hue:rand(310,360), alpha:rand(.04,.1)
+  }));
+
+  let t=0;
+  function draw(){
+    if($('s1').classList.contains('hidden')) return;
+    cx.clearRect(0,0,W,H);
+    // Blobs
+    blobs.forEach(b=>{
+      const grd=cx.createRadialGradient(b.x*W,b.y*H,0,b.x*W,b.y*H,b.r*Math.min(W,H));
+      grd.addColorStop(0,`hsla(${b.hue},100%,60%,${b.alpha})`);
+      grd.addColorStop(1,`hsla(${b.hue},100%,60%,0)`);
+      cx.fillStyle=grd; cx.fillRect(0,0,W,H);
+    });
+    // Particles
+    particles.forEach(p=>{
+      p.x+=(p.vx/W); p.y+=(p.vy/H);
+      if(p.x<0)p.x=1; if(p.x>1)p.x=0;
+      if(p.y<0)p.y=1; if(p.y>1)p.y=0;
+      const a = p.alpha*(0.6+0.4*Math.sin(t*p.speed*1000+p.phase));
+      cx.beginPath();
+      cx.arc(p.x*W, p.y*H, p.r,0,TAU);
+      cx.fillStyle=`hsla(${p.hue},100%,75%,${a})`;
+      cx.fill();
+    });
+    t+=0.016; requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ============================================================
+   SCENE 1 — BUTTON LOGIC
+============================================================ */
+(function(){
+  const yes  = $('btn-yes');
+  const no   = $('btn-no');
+  const msg  = $('no-msg');
+  const msgs = [
+    "Are you sure? 🥺",
+    "Think again, Sara ❤️",
+    "Give me a chance!",
+    "You know you want to click YES 😭",
+    "Just one YES for me? 💖",
+    "C'mon Sara, you're breaking my heart 💔",
+    "I'll wait forever… but please say yes 🥺💕",
+    "The YES button misses you 💗",
+    "One little YES won't hurt 😇",
+    "Sara… 🥺👉👈",
+    "Pretty please? With love on top 💓",
+    "I promise it'll be worth it! 🌹"
+  ];
+  let noCount=0;
+  let ySize=1.1, nSize=.85;
+  let yPadV=.9, yPadH=2.2;
+  let nPadV=.65, nPadH=1.4;
+
+  no.addEventListener('click',()=>{
+    noCount++;
+    msg.style.opacity='0';
+    setTimeout(()=>{ msg.textContent=msgs[Math.min(noCount-1,msgs.length-1)]; msg.style.opacity='1'; },250);
+
+    ySize  = Math.min(ySize+.22, 2.6);
+    nSize  = Math.max(nSize-.09, .4);
+    yPadV  = Math.min(yPadV+.08, 1.6);
+    yPadH  = Math.min(yPadH+.18, 3.8);
+    nPadV  = Math.max(nPadV-.04, .25);
+    nPadH  = Math.max(nPadH-.08, .45);
+
+    yes.style.fontSize = ySize+'rem';
+    yes.style.padding  = `${yPadV}rem ${yPadH}rem`;
+    yes.style.boxShadow= noCount>=4
+      ? `0 0 ${30+noCount*10}px rgba(233,30,140,.85), 0 0 ${60+noCount*15}px rgba(233,30,140,.45)`
+      : '0 0 24px rgba(233,30,140,.5),0 4px 20px rgba(0,0,0,.4)';
+
+    no.style.fontSize  = nSize+'rem';
+    no.style.padding   = `${nPadV}rem ${nPadH}rem`;
+    no.style.opacity   = Math.max(.25, 1-noCount*.08)+'';
+  });
+
+  yes.addEventListener('click',()=>{
+    yes.disabled=true; no.disabled=true;
+    toScene2();
+  });
+})();
+
+/* ============================================================
+   TRANSITION  S1 → S2
+============================================================ */
+function toScene2(){
+  const s1=$('s1'), s2=$('s2'), ov=$('ov-dark');
+  s1.classList.add('fade-out');
+  ov.classList.add('on');
+  setTimeout(()=>{
+    s1.classList.add('hidden');
+    s2.classList.add('visible');
+    ov.classList.remove('on');
+    startScene2();
+  },1600);
+}
+
+/* ============================================================
+   SCENE 2 — MATRIX RAIN
+============================================================ */
+let scene2Active = false;
+function startMatrixRain(){
+  const cv  = $('matrix-canvas');
+  const ctx = cv.getContext('2d');
+  let W,H,cols,drops;
+
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@#$%^&*(){}[]|/\\<>+=ハミコサラアイウエオ♥❤✦⬡⬢◈';
+
+  function init(){
+    W=cv.width=innerWidth; H=cv.height=innerHeight;
+    const fs=14; cols=Math.floor(W/fs);
+    drops=Array.from({length:cols},()=>rand(-H/fs,0));
+  }
+  init(); window.addEventListener('resize',init);
+
+  const colors=['#ff3080','#ff6b9d','#cc44ff','#00ffcc','#ffb3d1','#ff1461'];
+
+  function drawMatrix(){
+    if($('s2').classList.contains('hidden')||!$('s2').classList.contains('visible')) return;
+    ctx.fillStyle='rgba(0,0,0,.06)'; ctx.fillRect(0,0,W,H);
+    ctx.font='13px Orbitron,monospace';
+    drops.forEach((y,i)=>{
+      const ch=chars[Math.floor(Math.random()*chars.length)];
+      const col=colors[Math.floor(Math.random()*colors.length)];
+      ctx.fillStyle=col;
+      ctx.globalAlpha=rand(.4,1);
+      ctx.fillText(ch, i*14, y*14);
+      ctx.globalAlpha=1;
+      if(y*14>H && Math.random()>.96) drops[i]=0;
+      drops[i]+=.4+Math.random()*.3;
+    });
+    requestAnimationFrame(drawMatrix);
+  }
+  drawMatrix();
+}
+
+/* ============================================================
+   SCENE 2 — EYE (2D Canvas — very detailed)
+============================================================ */
+let eyeCanvas, eyeCtx, eyeW, eyeH;
+let eyeProgress=0; // 0→1 reveal
+let eyeRevealed=false;
+let zoomPhase=0;   // 0→1
+let zoomStarted=false;
+let zoomComplete=false;
+
+// Orbiting code chars around iris
+const orbiters=[];
+const ORBIT_COUNT=120;
+const codeChars='01♥⬡SARA❤∞λπΩ#@>';
+
+function initEye(){
+  eyeCanvas=$('eye-canvas');
+  eyeCtx=eyeCanvas.getContext('2d');
+
+  function resize(){
+    eyeW=eyeCanvas.width=innerWidth;
+    eyeH=eyeCanvas.height=innerHeight;
+  }
+  resize(); window.addEventListener('resize',resize);
+
+  for(let i=0;i<ORBIT_COUNT;i++){
+    orbiters.push({
+      angle: rand(0,TAU),
+      speed: rand(.004,.018)*(Math.random()<.5?1:-1),
+      radius: rand(.52,.9),   // fraction of irisR
+      char: codeChars[Math.floor(rand(0,codeChars.length))],
+      size: rand(7,15),
+      alpha: rand(.4,.9),
+      hue: rand(280,360),
+    });
+  }
+
+  drawEyeLoop();
+}
+
+function heartPtX(t){ return 16*Math.pow(Math.sin(t),3); }
+function heartPtY(t){ return -(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t)); }
+
+function drawEyeLoop(now=0){
+  if(zoomComplete) return;
+  const ctx=eyeCtx; const W=eyeW; const H=eyeH;
+  ctx.clearRect(0,0,W,H);
+
+  const cx=W/2, cy=H/2;
+  const baseEyeW = Math.min(W,H)*0.56;   // half-width of eye shape
+  const baseEyeH = baseEyeW*0.42;
+  const irisR    = baseEyeW*0.34;
+  const pupilR   = irisR*0.42;
+
+  // Zoom transform: scale from 1 to ~6 and translate so pupil fills screen
+  const zoom = 1+easeInOut(zoomPhase)*12;
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.scale(zoom,zoom);
+  ctx.translate(-cx,-cy);
+
+  if(eyeProgress>0){
+    // ---- SCLERA (white of eye) ----
+    const scleraAlpha=clamp(eyeProgress*2,0,1);
+    ctx.save();
+    ctx.translate(cx,cy);
+    const scleraGrd=ctx.createRadialGradient(0,-baseEyeH*.3,0, 0,0,baseEyeW);
+    scleraGrd.addColorStop(0,'rgba(255,245,240,1)');
+    scleraGrd.addColorStop(.7,'rgba(240,220,225,1)');
+    scleraGrd.addColorStop(1,'rgba(200,170,180,1)');
+    ctx.fillStyle=scleraGrd;
+    ctx.globalAlpha=scleraAlpha*.95;
+    ctx.beginPath();
+    // Almond shape
+    const almondSegs=120;
+    ctx.moveTo(-baseEyeW,0);
+    for(let i=0;i<=almondSegs;i++){
+      const t=i/almondSegs;
+      const ang=PI*t;
+      const px=-Math.cos(ang)*baseEyeW;
+      const py=Math.sin(ang)*baseEyeH*(1-Math.abs(Math.cos(ang)*.4));
+      ctx.lineTo(px,py);
+    }
+    for(let i=0;i<=almondSegs;i++){
+      const t=i/almondSegs;
+      const ang=PI*(1+t);
+      const px=-Math.cos(ang)*baseEyeW;
+      const py=Math.sin(ang)*baseEyeH*(1-Math.abs(Math.cos(ang)*.4));
+      ctx.lineTo(px,py);
+    }
+    ctx.closePath(); ctx.fill();
+    // Blood vessel lines — subtle
+    if(eyeProgress>.5){
+      ctx.globalAlpha=scleraAlpha*.15;
+      ctx.strokeStyle='#ff7070'; ctx.lineWidth=.7;
+      for(let i=0;i<8;i++){
+        const sx=-baseEyeW*.7+rand(0,baseEyeW*.8);
+        const sy=rand(-baseEyeH*.5,baseEyeH*.5);
+        ctx.beginPath(); ctx.moveTo(sx,sy);
+        ctx.quadraticCurveTo(sx+rand(-30,30),sy+rand(-20,20),sx+rand(-50,50),sy+rand(-30,30));
+        ctx.stroke();
+      }
+    }
+    ctx.globalAlpha=1; ctx.restore();
+
+    // ---- IRIS ----
+    const irisAlpha=clamp((eyeProgress-.1)*1.5,0,1);
+    ctx.save(); ctx.translate(cx,cy);
+    // Iris clipping to almond
+    ctx.beginPath();
+    for(let i=0;i<=almondSegs;i++){
+      const t=i/almondSegs; const ang=PI*t;
+      const px=-Math.cos(ang)*baseEyeW;
+      const py=Math.sin(ang)*baseEyeH*(1-Math.abs(Math.cos(ang)*.4));
+      i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    for(let i=0;i<=almondSegs;i++){
+      const t=i/almondSegs; const ang=PI*(1+t);
+      const px=-Math.cos(ang)*baseEyeW;
+      const py=Math.sin(ang)*baseEyeH*(1-Math.abs(Math.cos(ang)*.4));
+      ctx.lineTo(px,py);
+    }
+    ctx.clip();
+
+    // Iris gradient layers
+    const ig=ctx.createRadialGradient(0,-irisR*.15,0, 0,0,irisR);
+    ig.addColorStop(0,'rgba(60,0,120,1)');
+    ig.addColorStop(.25,'rgba(120,0,180,1)');
+    ig.addColorStop(.5,'rgba(200,30,130,1)');
+    ig.addColorStop(.75,'rgba(80,0,160,1)');
+    ig.addColorStop(1,'rgba(10,0,50,1)');
+    ctx.globalAlpha=irisAlpha;
+    ctx.fillStyle=ig;
+    ctx.beginPath(); ctx.arc(0,0,irisR,0,TAU); ctx.fill();
+
+    // Iris fibres — radial lines
+    ctx.globalAlpha=irisAlpha*.35;
+    for(let i=0;i<80;i++){
+      const a=rand(0,TAU);
+      const r1=pupilR*1.05, r2=irisR*.98;
+      ctx.strokeStyle=`hsl(${rand(270,360)},100%,${rand(50,85)}%)`;
+      ctx.lineWidth=.6;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a)*r1, Math.sin(a)*r1);
+      ctx.lineTo(Math.cos(a+rand(-.15,.15))*r2, Math.sin(a+rand(-.15,.15))*r2);
+      ctx.stroke();
+    }
+
+    // Iris rings
+    const ringCols=['rgba(255,107,157,.5)','rgba(200,100,255,.4)','rgba(0,255,204,.25)'];
+    ringCols.forEach((col,ri)=>{
+      const rr=irisR*(0.55+ri*.17);
+      ctx.globalAlpha=irisAlpha*.7;
+      ctx.strokeStyle=col; ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.arc(0,0,rr,0,TAU); ctx.stroke();
+    });
+
+    // Shimmer dots on iris
+    ctx.globalAlpha=irisAlpha*.6;
+    for(let i=0;i<60;i++){
+      const a=rand(0,TAU), r=rand(pupilR*1.1,irisR*.95);
+      ctx.fillStyle=`hsl(${rand(290,360)},100%,80%)`;
+      ctx.beginPath(); ctx.arc(Math.cos(a)*r,Math.sin(a)*r,rand(.4,1.5),0,TAU); ctx.fill();
+    }
+
+    ctx.restore();
+
+    // ---- PUPIL ----
+    const pupilAlpha=clamp((eyeProgress-.15)*1.8,0,1);
+    ctx.save(); ctx.translate(cx,cy);
+    const pulseP=1+Math.sin(now*.0015)*.08;
+    const pGrd=ctx.createRadialGradient(0,0,0, 0,0,pupilR*pulseP);
+    pGrd.addColorStop(0,'rgba(5,0,20,1)');
+    pGrd.addColorStop(.6,'rgba(20,0,40,1)');
+    pGrd.addColorStop(1,'rgba(80,0,100,.7)');
+    ctx.globalAlpha=pupilAlpha;
+    ctx.fillStyle=pGrd;
+    ctx.beginPath(); ctx.arc(0,0,pupilR*pulseP,0,TAU); ctx.fill();
+    // Pupil glow ring
+    ctx.globalAlpha=pupilAlpha*.8;
+    ctx.strokeStyle='rgba(180,0,255,.6)'; ctx.lineWidth=2.5;
+    ctx.shadowBlur=15; ctx.shadowColor='#9900ff';
+    ctx.beginPath(); ctx.arc(0,0,pupilR*pulseP,0,TAU); ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.restore();
+
+    // ---- CORNEAL REFLECTION (specular) ----
+    ctx.save(); ctx.translate(cx,cy);
+    const refAlpha=clamp((eyeProgress-.2)*2,0,1);
+    const rGrd=ctx.createRadialGradient(-irisR*.25,-irisR*.35, 0, -irisR*.25,-irisR*.35,irisR*.28);
+    rGrd.addColorStop(0,`rgba(255,255,255,${refAlpha*.55})`);
+    rGrd.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=rGrd;
+    ctx.beginPath(); ctx.arc(-irisR*.25,-irisR*.35,irisR*.28,0,TAU); ctx.fill();
+    // Small sparkle
+    const sparkAlpha=clamp((eyeProgress-.3)*2,0,1);
+    ctx.globalAlpha=sparkAlpha*.9;
+    ctx.fillStyle='rgba(255,255,255,.8)';
+    ctx.beginPath(); ctx.arc(-irisR*.22,-irisR*.38,irisR*.05,0,TAU); ctx.fill();
+    ctx.restore();
+
+    // ---- GLOW RINGS outside iris ----
+    if(eyeProgress>.4){
+      const gra=clamp((eyeProgress-.4)*2,0,1);
+      ctx.save(); ctx.translate(cx,cy);
+      [1.05,1.15,1.3].forEach((rf,gi)=>{
+        ctx.globalAlpha=gra*(0.4-gi*.1);
+        ctx.strokeStyle=gi===0?'#ff6b9d':gi===1?'#cc44ff':'rgba(0,255,204,.5)';
+        ctx.lineWidth=gi===0?2:1;
+        ctx.shadowBlur=gi===0?20:10;
+        ctx.shadowColor=gi===0?'#ff3080':'#9900ff';
+        const rotOff=now*.0005*(gi%2===0?1:-1);
+        ctx.beginPath();
+        ctx.arc(0,0,irisR*rf,0,TAU);
+        ctx.stroke();
+      });
+      ctx.shadowBlur=0; ctx.restore();
+    }
+
+    // ---- ORBITING CODE CHARS ----
+    if(eyeProgress>.5){
+      const oa=clamp((eyeProgress-.5)*2.5,0,1);
+      ctx.save(); ctx.translate(cx,cy);
+      orbiters.forEach(o=>{
+        o.angle+=o.speed;
+        const r=irisR*o.radius;
+        const x=Math.cos(o.angle)*r;
+        const y=Math.sin(o.angle)*r*.45; // flatten to match eye shape
+        ctx.globalAlpha=oa*o.alpha;
+        ctx.fillStyle=`hsl(${o.hue},100%,70%)`;
+        ctx.font=`${o.size}px Orbitron,monospace`;
+        ctx.shadowBlur=8; ctx.shadowColor=`hsl(${o.hue},100%,60%)`;
+        ctx.fillText(o.char, x, y);
+      });
+      ctx.shadowBlur=0; ctx.restore();
+    }
+
+    // ---- EYELIDS ----
+    drawEyelids(ctx,cx,cy,baseEyeW,baseEyeH,clamp(eyeProgress*2.5,0,1),now);
+  }
+
+  ctx.restore(); // undo zoom transform
+
+  // Zoom tunnel particles
+  if(zoomStarted && !zoomComplete){
+    drawTunnelParticles(ctx,W,H,now);
+  }
+
+  requestAnimationFrame(t=>drawEyeLoop(t));
+}
+
+function drawEyelids(ctx,cx,cy,ew,eh,a,now){
+  if(a<=0) return;
+  ctx.save(); ctx.translate(cx,cy);
+  ctx.globalAlpha=a;
+  // Eyelid stroke (lash line)
+  ['top','bottom'].forEach(side=>{
+    const sign=side==='top'?1:-1;
+    ctx.beginPath();
+    ctx.moveTo(-ew,0);
+    const segs=80;
+    for(let i=1;i<=segs;i++){
+      const tt=i/segs;
+      const ang=PI*tt;
+      const px=-Math.cos(ang)*ew;
+      const py=sign*Math.sin(ang)*eh*(1-Math.abs(Math.cos(ang)*.4));
+      ctx.lineTo(px,py);
+    }
+    const grd=ctx.createLinearGradient(-ew,0,ew,0);
+    grd.addColorStop(0,'rgba(255,107,157,.3)');
+    grd.addColorStop(.5,'rgba(255,50,130,1)');
+    grd.addColorStop(1,'rgba(255,107,157,.3)');
+    ctx.strokeStyle=grd; ctx.lineWidth=side==='top'?3:2;
+    ctx.shadowBlur=12; ctx.shadowColor='#ff3080';
+    ctx.stroke();
+  });
+  ctx.shadowBlur=0; ctx.restore();
+}
+
+// Tunnel particles for zoom effect
+const tunnelPts=Array.from({length:500},()=>({
+  angle:rand(0,TAU), r:rand(.02,.55),
+  z:rand(-20,0),
+  speed:rand(.08,.25),
+  hue:rand(290,360), size:rand(1,3.5),
+}));
+
+function drawTunnelParticles(ctx,W,H,now){
+  const cx=W/2, cy=H/2;
+  const progress=easeInOut(zoomPhase);
+  tunnelPts.forEach(p=>{
+    p.z+=p.speed*(1+progress*12);
+    if(p.z>2){ p.z=-20; p.r=rand(.02,.55); p.angle=rand(0,TAU); }
+    const perspective=500;
+    const scale=perspective/(perspective-p.z*40);
+    const x=cx+Math.cos(p.angle)*p.r*perspective*0.4*scale;
+    const y=cy+Math.sin(p.angle)*p.r*perspective*0.25*scale;
+    const a=clamp(progress*.9*(1-(p.z/-20)),0,.9);
+    ctx.globalAlpha=a;
+    ctx.fillStyle=`hsl(${p.hue},100%,70%)`;
+    ctx.beginPath(); ctx.arc(x,y,p.size*scale*.5,0,TAU); ctx.fill();
+  });
+  ctx.globalAlpha=1;
+}
+
+/* ============================================================
+   SCENE 2 — TERMINAL
+============================================================ */
+function runTerminal(onDone){
+  const ids=['tl0','tl1','tl2','tl3','tl4'];
+  const delays=[300,1300,2500,3700,4700];
+  ids.forEach((id,i)=>{
+    setTimeout(()=>{ $(id).classList.add('show'); },delays[i]);
+  });
+  setTimeout(onDone, 5800);
+}
+
+/* ============================================================
+   SCENE 2 — EYE REVEAL ANIMATION
+============================================================ */
+function revealEye(){
+  $('terminal').style.opacity='0';
+  const dur=2400, start=performance.now();
+  function step(now){
+    eyeProgress=clamp((now-start)/dur,0,1);
+    if(eyeProgress<1) requestAnimationFrame(step);
+    else { eyeRevealed=true; beginZoom(); }
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============================================================
+   SCENE 2 — ZOOM
+============================================================ */
+function beginZoom(){
+  zoomStarted=true;
+  const dur=7000, start=performance.now();
+  function step(now){
+    zoomPhase=clamp((now-start)/dur,0,1);
+    if(zoomPhase<1) requestAnimationFrame(step);
+    else{ zoomComplete=true; toScene3(); }
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============================================================
+   START SCENE 2
+============================================================ */
+function startScene2(){
+  startMatrixRain();
+  initEye();
+  runTerminal(revealEye);
+}
+
+/* ============================================================
+   TRANSITION  S2 → S3
+============================================================ */
+function toScene3(){
+  const ov=$('ov-dark');
+  ov.style.opacity='1'; ov.style.transition='opacity 1.5s ease';
+  setTimeout(()=>{
+    $('s2').classList.remove('visible');
+    $('s3').classList.add('visible');
+    ov.style.transition='opacity 2s ease';
+    ov.style.opacity='0';
+    startScene3();
+  },1700);
+}
+
+/* ============================================================
+   SCENE 3 — HEART CANVAS
+============================================================ */
+function startScene3(){
+  const cv=$('heart-canvas');
+  const ctx=cv.getContext('2d');
+  let W,H;
+  const resize=()=>{ W=cv.width=innerWidth; H=cv.height=innerHeight; };
+  resize(); window.addEventListener('resize',resize);
+
+  // Stars
+  const stars=Array.from({length:220},()=>({
+    x:rand(0,1),y:rand(0,1),r:rand(.3,1.8),
+    phase:rand(0,TAU),speed:rand(.0008,.003),
+  }));
+
+  // Floating hearts pool
+  const hearts=[];
+  let lastHeart=0;
+
+  // Big heart outline progress
+  let outlineT=0;
+  let heartBeat=0;
+
+  function hx(t){ return 16*Math.pow(Math.sin(t),3); }
+  function hy(t){ return -(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t)); }
+
+  function drawHeartOutline(ctx,cx,cy,sc,prog,now){
+    // Heartbeat pulse
+    heartBeat+=.04;
+    const pulse=1+Math.sin(heartBeat)*.03;
+    const s=sc*pulse;
+
+    // Outer glow
+    ctx.save(); ctx.translate(cx,cy);
+    for(let pass=0;pass<3;pass++){
+      ctx.strokeStyle=pass===0?'rgba(255,0,80,.12)':pass===1?'rgba(255,107,157,.3)':'rgba(255,60,120,.85)';
+      ctx.lineWidth=pass===0?20:pass===1?8:2.5;
+      ctx.shadowBlur=pass===0?0:pass===1?15:25;
+      ctx.shadowColor=pass===0?'transparent':'#ff3080';
+      const steps=360;
+      const endStep=Math.floor(steps*prog);
+      ctx.beginPath();
+      for(let i=0;i<=endStep;i++){
+        const t=(i/steps)*TAU;
+        const px=hx(t)*s, py=hy(t)*s;
+        i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+      }
+      ctx.stroke();
+    }
+    ctx.shadowBlur=0; ctx.restore();
+  }
+
+  function spawnHeart(){
+    const cx=W/2, cy=H/2+30;
+    const angle=rand(0,TAU);
+    const dist=rand(60,180);
+    hearts.push({
+      x:cx+Math.cos(angle)*dist*.5,
+      y:cy+Math.sin(angle)*dist*.5,
+      vx:rand(-.4,.4), vy:-(rand(.4,1.5)),
+      size:rand(8,28), alpha:rand(.7,1),
+      fade:rand(.003,.008),
+      hue:rand(320,360),
+      rot:rand(-.4,.4), rotS:rand(-.015,.015),
+    });
+    // Occasionally spawn big heart
+    if(Math.random()<.12){
+      hearts.push({
+        x:cx+rand(-50,50), y:cy+rand(-30,30),
+        vx:rand(-.2,.2), vy:-rand(.1,.4),
+        size:rand(45,75), alpha:.5,
+        fade:.0015, hue:rand(330,350),
+        rot:0, rotS:rand(-.005,.005),
+      });
+    }
+  }
+
+  function drawSmHeart(ctx,x,y,sz,al,hue,rot){
+    ctx.save();
+    ctx.translate(x,y); ctx.rotate(rot);
+    ctx.globalAlpha=al;
+    ctx.fillStyle=`hsl(${hue},100%,65%)`;
+    ctx.shadowBlur=12; ctx.shadowColor=`hsl(${hue},100%,60%)`;
+    ctx.beginPath();
+    const s=sz/16;
+    for(let i=0;i<=100;i++){
+      const t=(i/100)*TAU;
+      const px=hx(t)*s, py=hy(t)*s;
+      i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function loop3(now){
+    ctx.clearRect(0,0,W,H);
+
+    // BG radial glow
+    const bg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.min(W,H)*.75);
+    bg.addColorStop(0,'rgba(80,0,50,.4)'); bg.addColorStop(.5,'rgba(20,0,20,.2)'); bg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+    // Stars
+    stars.forEach(s=>{
+      const a=.2+.5*Math.sin(now*s.speed+s.phase);
+      ctx.globalAlpha=a; ctx.fillStyle='rgba(255,210,230,.9)';
+      ctx.beginPath(); ctx.arc(s.x*W,s.y*H,s.r,0,TAU); ctx.fill();
+    });
+    ctx.globalAlpha=1;
+
+    // Big heart outline
+    outlineT=Math.min(outlineT+.003,1);
+    const sc=Math.min(W,H)*.028;
+    drawHeartOutline(ctx,W/2,H/2+20,sc,outlineT,now);
+
+    // Floating hearts
+    if(now-lastHeart>200){ spawnHeart(); lastHeart=now; }
+    for(let i=hearts.length-1;i>=0;i--){
+      const h=hearts[i];
+      drawSmHeart(ctx,h.x,h.y,h.size,h.alpha,h.hue,h.rot);
+      h.x+=h.vx; h.y+=h.vy; h.alpha-=h.fade; h.rot+=h.rotS;
+      if(h.alpha<=0) hearts.splice(i,1);
+    }
+
+    requestAnimationFrame(loop3);
+  }
+  requestAnimationFrame(loop3);
+
+  // Reveal text
+  setTimeout(()=>{ $('sara-name').classList.add('show'); },600);
+  setTimeout(()=>{ $('sara-q').classList.add('show'); },2200);
+  setTimeout(()=>{ $('sara-sub').classList.add('show'); },4200);
+}
+</script>
+</body>
+</html>
